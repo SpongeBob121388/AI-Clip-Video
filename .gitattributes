@@ -1,0 +1,4 @@
+# 打包机与多数开发环境是 core.autocrlf=true（Git for Windows 默认），检出时会把 LF 换成 CRLF。
+# 校验和文件一旦带上 \r，`sha256sum -c` 会把行尾的 \r 当成文件名的一部分而报错，
+# 所以这个文件必须按 LF 检出。
+dist/SHA256SUMS.txt text eol=lf
