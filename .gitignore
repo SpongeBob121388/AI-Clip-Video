@@ -5,7 +5,10 @@ __pycache__/
 *.egg-info/
 .eggs/
 build/
-dist/
+# dist 整体不入库，但保留构建校验记录：它是发布溯源的一部分
+# （写成 dist/* 而不是 dist/，否则 git 不会进入被排除的目录，下面的 ! 规则不生效）
+dist/*
+!dist/SHA256SUMS.txt
 .venv/
 venv/
 env/
