@@ -1,0 +1,34 @@
+[package]
+name = "auto-clip-video"
+version = "0.1.0"
+description = "Windows AI 口播剪辑与个人数字人软件"
+authors = ["auto-clip-video"]
+edition = "2021"
+rust-version = "1.70"
+
+[lib]
+name = "auto_clip_video_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2.0", features = [] }
+
+[dependencies]
+tauri = { version = "2.0", features = [] }
+tauri-plugin-shell = "2.0"
+tauri-plugin-dialog = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+# backend_info 等就绪等待走异步命令，避免阻塞 webview 的 IPC 线程
+tokio = { version = "1", features = ["time", "macros"] }
+
+# sidecar 进程树回收要用 Job Object（PyInstaller onefile 是「引导进程 + Python 子进程」两个 PID）
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.61", features = [
+    "Win32_Foundation",
+    "Win32_System_JobObjects",
+    "Win32_System_Threading",
+] }
+
+[features]
+custom-protocol = ["tauri/custom-protocol"]

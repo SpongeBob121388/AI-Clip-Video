@@ -1,0 +1,112 @@
+[project]
+name = "auto-clip-video"
+version = "0.1.0"
+description = "Windows AI 口播剪辑与个人数字人软件"
+requires-python = ">=3.11"
+license = { text = "Proprietary" }
+
+dependencies = [
+    "fastapi>=0.110.0",
+    "uvicorn[standard]>=0.27.0",
+    "pydantic>=2.6.0",
+    "pydantic-settings>=2.2.0",
+    "sqlalchemy[asyncio]>=2.0.29",
+    "aiosqlite>=0.20.0",
+    "structlog>=24.1.0",
+    "python-multipart>=0.0.9",
+    "websockets>=12.0",
+    # 运行时依赖：设置页的端点探活、LLM provider 调用都走 httpx，不能只放在 dev 里
+    "httpx>=0.27.0",
+    # Windows 凭据库后端；缺失时应用降级为内存态并明确告知用户
+    "keyring>=25.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+    "pytest-cov>=4.1.0",
+    "ruff>=0.4.0",
+    "mypy>=1.10.0",
+    # 只在测试里用：官方读取器是 OTIO 产物唯一的验收依据（tests/e2e/test_otio_reader.py）。
+    # 刻意不进运行时依赖——导出只用标准库写 JSON，装了会把 C++ 扩展带进打包环境
+    "opentimelineio>=0.18.1",
+]
+asr = [
+    "faster-whisper>=1.0.0",
+    # ctranslate2 4.8.2 在 Anaconda 环境下加载模型会 access violation 直接崩进程，
+    # 4.4.0 实测可用；崩溃发生在原生层，Python 侧捕获不到，所以只能锁版本
+    "ctranslate2>=4.4.0,<4.5",
+    # ctranslate2 4.4 在 import 时就 `import pkg_resources`，而 setuptools 81 起不再提供它
+    # （实测 setuptools 84 直接 ModuleNotFoundError）。conda base 永远带着可用的 setuptools，
+    # 所以这个缺口只在干净 venv（正是打包用的环境）里才炸，必须显式钉住上界。
+    "setuptools<81",
+    # faster-whisper 1.2.1 调 av.open(..., metadata_errors="ignore")，PyAV 19 删了这个参数
+    # （实测 18.1.0 可用、19.0.1 抛 TypeError，且发生在解码音频时而不是导入时）。
+    # 上游没给 av 设上界，所以只能在这里钉住，否则装完 asr -extra 第一次识别就崩
+    "av<19",
+]
+vad = [
+    "silero-vad>=5.1",
+    "torch>=2.2.0",
+    "torchaudio>=2.2.0",
+]
+llm = [
+    "openai>=1.0.0",
+]
+ffmpeg = [
+    # 本机没有装 ffmpeg 时的兜底：imageio-ffmpeg 自带一个可执行文件
+    "imageio-ffmpeg>=0.5.1",
+]
+
+[project.scripts]
+auto-clip-video = "app.main:run"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "SIM"]
+ignore = ["E501", "UP042"]
+
+[tool.ruff.lint.pep8-naming]
+extend-ignore-names = ["test_*"]
+
+[tool.ruff.lint.flake8-bugbear]
+# FastAPI 的依赖注入惯用法就是写在参数默认值里
+extend-immutable-calls = [
+    "fastapi.Body",
+    "fastapi.Depends",
+    "fastapi.File",
+    "fastapi.Form",
+    "fastapi.Header",
+    "fastapi.Path",
+    "fastapi.Query",
+]
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+asyncio_mode = "auto"
+filterwarnings = ["error::DeprecationWarning"]
+markers = [
+    "unit: 单元测试",
+    "integration: 集成测试",
+    "e2e: 端到端测试",
+    "slow: 耗时测试",
+]

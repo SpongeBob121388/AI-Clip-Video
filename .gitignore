@@ -1,0 +1,77 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+env/
+
+# Node.js
+node_modules/
+frontend/dist/
+
+# 构建/类型检查产物：tsc -b 生成的 vite.config.js 会盖住同名的 .ts 配置，必须留在忽略区
+*.tsbuildinfo
+frontend/vite.config.js
+frontend/vite.config.d.ts
+
+# 本地运行与验证留下的数据目录、临时产物
+data/
+.dev-check/
+*.otio
+experiments/**/report.json
+*.part.mp4
+
+# Tauri / Rust
+src-tauri/target/
+target/
+# sidecar 由 build_windows.ps1 从 PyInstaller 产物复制而来，不入库
+src-tauri/binaries/
+src-tauri/gen/schemas/
+dist_build*/
+
+# Databases
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Environment & secrets
+.env
+.env.*
+!.env.example
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Logs
+*.log
+logs/
+
+# Test / coverage
+.coverage
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Media (large files, should not be committed)
+*.mp4
+*.mov
+*.mkv
+*.avi
+*.wav
+*.flac
+# But keep small test fixtures
+!tests/fixtures/**
